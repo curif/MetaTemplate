@@ -178,7 +178,8 @@ public static unsafe class LibretroMameCore
 
     // audio buffer ===============
     public static List<float> AudioBatch = new List<float>();
-    static uint AudioBufferMaxOccupancy = 4096;
+    static uint AudioBufferMaxOccupancy = 1024 * 20;
+    static uint AudioBufferPosition = 0;
 
 #endregion
 
@@ -450,7 +451,7 @@ public static unsafe class LibretroMameCore
             if (sampleRate == 0) {
                 sampleRate = Int32.Parse(AudioSampleRate);
             }
-            Speaker.clip = AudioClip.Create("MameAudioSource", sampleRate * 2, 2, sampleRate, true, OnAudioRead);
+            Speaker.clip = AudioClip.Create("MameAudioSource", sampleRate * 2, 2, sampleRate, true, OnAudioRead /*, onAudioChangePosition*/);
             Speaker.Play();
 
             WriteConsole($"[curif.LibRetroMameCore.Start] set audio clip sapmplerate to {sampleRate} and PLAY {Speaker.clip}");
@@ -463,8 +464,6 @@ public static unsafe class LibretroMameCore
             //It is neccesary to call Run() method for the game in the parameter?
             return;
         }
-
-        OVRInput.Update();
         
         // https://docs.unity3d.com/ScriptReference/Time-deltaTime.html
         FPSControl.CountTimeFrame();
@@ -473,18 +472,17 @@ public static unsafe class LibretroMameCore
             // https://github.com/libretro/mame2003-plus-libretro/blob/6de44ee0a37b32a85e0aec013924bef34996ef35/src/mame2003/video.c#L400
             uint AudioPercentOccupancy = (uint)AudioBatch.Count * (uint)100 / AudioBufferMaxOccupancy; 
             // AudioBufferStatusInfo(true, AudioPercentOccupancy, AudioPercentOccupancy > 80);
-            
+
 #if _debug_fps_
             Profiling = new();
             Profiling.retroRun.Start();
             retro_run();
             Profiling.retroRun.Stop();
-            WriteConsole($"[Run] {Profiling.ToString()} | {FPSControl.ToString()} | Audio occupancy {AudioPercentOccupancy}%");
+            WriteConsole($"[Run] {Profiling.ToString()} | Audio occupancy {AudioPercentOccupancy}%");
 #else
             retro_run();
 #endif
         }
-
 
         //Is the Player looking outside the game?
         controlForAskIfTimeToExitGame.CountTimeFrame();
@@ -505,7 +503,9 @@ public static unsafe class LibretroMameCore
                 WaitToExitGame = null;
             }
         }
-
+#if _debug_fps_
+        WriteConsole($"[Run] {FPSControl.ToString()} ");
+#endif
         return;
     }
 
@@ -690,7 +690,7 @@ public static unsafe class LibretroMameCore
                         WriteConsole("input_interface value to return:" + retropad);
                         return true;
                     case "mame2003-plus_cpu_clock_scale":
-                        string clockScale = "200";
+                        string clockScale = "default";
                         gvp->value = (char *)PtrVault.GetPtr(clockScale);
                         WriteConsole("cpu_clock_scale value to return:" + clockScale);
                         return true;
@@ -1072,13 +1072,25 @@ public static unsafe class LibretroMameCore
             //overrun
             return 0;
         }
+
 #if _debug_fps_
         Profiling.audio.Start();
 #endif
+        
         for (ulong i = 0; i < frames*2; ++i) {
             float value = Mathf.Clamp(data[i] * 0.000030517578125f, -1.0f, 1.0f); // 0.000030517578125f o 0.00048828125; //to convert from 16 to fp 
             AudioBatch.Add(value);
         }
+        
+        
+        /*
+        //test setdata
+        float[] samples = new float[frames*2];
+        for (ulong i = 0; i < frames*2; ++i) {
+            samples[i] = Mathf.Clamp(data[i] * 0.000030517578125f, -1.0f, 1.0f); // 0.000030517578125f o 0.00048828125; //to convert from 16 to fp 
+        }
+        Speaker.clip.SetData(samples, 0);
+        */
 
 #if _debug_fps_
         Profiling.audio.Stop();
@@ -1098,6 +1110,9 @@ public static unsafe class LibretroMameCore
             AudioBatch.CopyTo(0, data, 0, toCopy);
             AudioBatch.RemoveRange(0, toCopy);
         }
+    }
+    public static void onAudioChangePosition(uint newPos) {
+        AudioBufferPosition = newPos;
     }
 
     private static void getAVGameInfo() {
@@ -1126,11 +1141,12 @@ public static unsafe class LibretroMameCore
     public static bool isPlayerLookingScreen(GameObject _camera, Renderer _display, float _distanceMinToPlayerToStartGame) {
         RaycastHit _hit = new RaycastHit();
         Vector3 dir = _camera.transform.TransformDirection(Vector3.forward);
+        bool ret = false;
             
         if (Physics.Raycast(_camera.transform.position, dir, out _hit, _distanceMinToPlayerToStartGame)) {
             // Debug.DrawRay(_camera.transform.position, dir * _hit.distance, Color.red);
             // WriteConsole($"[curif.LibRetroMameCore.isPlayerLookingScreen] {_hit.collider} ");
-            return _hit.collider == _display.GetComponent<MeshCollider>();
+            ret = _hit.collider == _display.GetComponent<MeshCollider>();
         }
         /*
         else {
@@ -1138,7 +1154,7 @@ public static unsafe class LibretroMameCore
             Debug.DrawRay(_camera.transform.position, dir * _distanceMinToPlayerToStartGame, Color.yellow);
         }
         */
-        return false;
+        return ret;
     }
      //storage pointers to unmanaged memory
     public class MarshalHelpPtrVault {
