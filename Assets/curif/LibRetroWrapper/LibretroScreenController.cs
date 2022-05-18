@@ -94,6 +94,10 @@ public class LibretroScreenController : MonoBehaviour {
 
     }
 
+    private void OnAudioFilterRead(float[] data, int channels) {
+        LibretroMameCore.MoveAudioStreamTo(GameFile, data);
+    }
+
     private void OnDestroy() {
         LibretroMameCore.End(GameFile);
     }
