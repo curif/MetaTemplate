@@ -951,12 +951,42 @@ public static unsafe class LibretroMameCore
            
             case retro_pixel_format.RETRO_PIXEL_FORMAT_RGB565:
                 if (GameTexture == null) {
-                    WriteConsole($"[curif.LibRetroMameCore.videoRefreshCB] create new texture w: {width}  h: {height} pitch: {pitch} fmt: {pixelFormat}");
                     // GameTexture = new Texture2D((int)width, (int)height, TextureFormat.BGRA32, false);
+                    float bend = 4f;
+                    float scanlineSize1 = 200;
+                    float scanlineSpeed1 = -10;
+                    float scanlineSize2 = 20;
+                    float scanlineSpeed2 = -3;
+                    float scanlineAmount = 0.05f;
+                    float vignetteSize = 1.9f;
+                    float vignetteSmoothness = 0.6f;
+                    float vignetteEdgeRound = 8f;
+                    float noiseSize = 75f;
+                    float noiseAmount = 0.05f;
+
+                    // Chromatic aberration amounts
+                    Vector2 redOffset = new Vector2(0, -0.01f);
+                    Vector2 blueOffset = Vector2.zero;
+                    Vector2 greenOffset = new Vector2(0, 0.01f);
+
+                    Material material;
+                    // string shaderName = "Hidden/InvertColors";
+                    string shaderName = "Hidden/CrtPostProcess";
+                    Shader shader = Shader.Find(shaderName);
+                    if (shader == null || shader.ToString() == "Hidden/InternalErrorShader (UnityEngine.Shader)") {
+                        UnityEngine.Debug.LogError($"Internal error, Shader not found: {shaderName}");
+                        shader = Shader.Find("Standard");
+                    }
+                    WriteConsole($"[videoRefreshCB]shader {material.shader}");
+
+                    WriteConsole($"[curif.LibRetroMameCore.videoRefreshCB] create new texture w: {width}  h: {height} pitch: {pitch} fmt: {pixelFormat}");
                     GameTexture = new Texture2D((int)width, (int)height, TextureFormat.RGB565, false);
                     GameTexture.filterMode = FilterMode.Point;
-                    Display.material.mainTexture = GameTexture;
+                    // material.mainTexture = GameTexture;
+                    material.SetTexture("_MainTex", GameTexture);
+                    Display.material = material;
                 }
+                Display.material.SetFloat("u_time", Time.fixedTime);
                 GameTexture.LoadRawTextureData(data, (int)height*(int)pitch);
                 GameTexture.Apply(false, false);
                 break;
