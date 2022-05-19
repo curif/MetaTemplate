@@ -41,8 +41,8 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 888fd87dc7eb46592b6d507b7aaff9ab, type: 3}
-        m_Scale: {x: 1, y: 1}
+        m_Texture: {fileID: 2800000, guid: 672e51d03dc643e79858b38c7d4d5f12, type: 3}
+        m_Scale: {x: 0, y: 0}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
         m_Texture: {fileID: 0}
@@ -74,23 +74,23 @@ Material:
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
-    - u_bend: 4
+    - u_bend: 6
     - u_blueOffset_x: 0
     - u_blueOffset_y: 0
     - u_greenOffset_x: 0
-    - u_greenOffset_y: 0.01
+    - u_greenOffset_y: 0
     - u_noise_amount: 0.05
-    - u_noise_size: 75
+    - u_noise_size: 0
     - u_redOffset_x: 0
-    - u_redOffset_y: -0.01
-    - u_scanline_amount: 0.05
-    - u_scanline_size_1: 200
-    - u_scanline_size_2: 20
+    - u_redOffset_y: 0
+    - u_scanline_amount: 0.01
+    - u_scanline_size_1: 10
+    - u_scanline_size_2: 60
     - u_scanline_speed_1: -10
-    - u_scanline_speed_2: 3
-    - u_time: 0.01
-    - u_vignette_edge_round: 8
-    - u_vignette_size: 1.9
+    - u_scanline_speed_2: 2
+    - u_time: 0.06
+    - u_vignette_edge_round: 7
+    - u_vignette_size: 1.7
     - u_vignette_smoothness: 0.6
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

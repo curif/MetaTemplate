@@ -6,7 +6,7 @@ Shader "Hidden/CrtPostProcess"
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
-		u_time ("Time", Float) = 0.01
+		u_time ("Time (change with each frame)", Float) = 0.01
 		u_bend ("Bend", Float) = 4
 		u_scanline_size_1("scanline_size_1", Float) = 200
 		u_scanline_speed_1("scanline_speed_1", Float) = -10
