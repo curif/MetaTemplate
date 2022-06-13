@@ -1,3 +1,10 @@
+/* 
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+*/
+
+
 #define _debug_
 
 using System.Collections;
@@ -12,8 +19,7 @@ using System;
 public class LibretroScreenController : MonoBehaviour {
     [SerializeField]
     public string GameFile = "1942.zip";
-    [SerializeField]
-    public Renderer Display;
+
     [SerializeField]
     public GameObject Player;
     [Tooltip("The minimal distance between the player and the screen to start the game.")]
@@ -32,7 +38,8 @@ public class LibretroScreenController : MonoBehaviour {
 
     private GameObject Camera;
     private LibretroMameCore.Waiter SecsForCheqClose = new(2);
-
+    // [SerializeField]
+    Renderer Display;
     private bool isVisible = false;
 
     // LibretroMameCore.FpsControl fpsDebug = new(60f);
@@ -45,6 +52,9 @@ public class LibretroScreenController : MonoBehaviour {
         if (Camera == null) {
             throw new Exception("Camera not found in GameObject Tree");
         }
+        Display = GetComponent<Renderer>();
+        Player = GameObject.Find("PlayerController");
+
     }
     /*
     public void Update() {
@@ -64,7 +74,7 @@ public class LibretroScreenController : MonoBehaviour {
             if (SecsForCheqClose.Finished()) {
                 SecsForCheqClose.reset();
                 if (LibretroMameCore.isPlayerClose(Camera, Display, DistanceMinToPlayerToStartGame) && 
-                    LibretroMameCore.isPlayerLookingScreen(Camera, Display, DistanceMinToPlayerToStartGame)) {
+                    LibretroMameCore.isPlayerLookingAtScreen(Camera, Display, DistanceMinToPlayerToStartGame)) {
 
                     //start mame
                     LibretroMameCore.WriteConsole(string.Format("MAME Start game: {0} +_+_+_+_+_+_+_+__+_+_+_+_+_+_+_+_+_+_+_+_", GameFile));

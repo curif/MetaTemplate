@@ -1,3 +1,8 @@
+/* 
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+*/
 
 //#define _debug_fps_
 //#define _debug_audio_
@@ -283,10 +288,10 @@ public static unsafe class LibretroMameCore
 
     //game info and storage.
     // private static string GamePath = "/storage/emulated/0/RetroArch/downloads/";
-    private static string BaseDir = "/sdcard/Android/data/com.curif.Mametemplate2";
-    public static string SystemDir = $"{BaseDir}/system";
-    public static string RomsDir = $"{BaseDir}/downloads";
-    public static string GameSaveDir = $"{BaseDir}/save";
+    // private static string BaseDir = "/sdcard/Android/data/com.curif.Mametemplate2";
+    public static string SystemDir = $"{ConfigManager.BaseDir}/system";
+    public static string RomsDir = $"{ConfigManager.BaseDir}/downloads";
+    public static string GameSaveDir = $"{ConfigManager.BaseDir}/save";
     public static retro_system_info SystemInfo = new();
     public static retro_system_av_info GameAVInfo = new();
     static string GameFileName = "";
@@ -508,7 +513,7 @@ public static unsafe class LibretroMameCore
             WriteConsole($"[Run] {FPSControl.ToString()}");
             // WriteConsole($"[curif.LibRetroMameCore.Run] Check if Player looks the screen {Camera} {Display}");
 #endif
-            if (! isPlayerLookingScreen(Camera, Display, DistanceMinToPlayerToStartGame)) {
+            if (! isPlayerLookingAtScreen(Camera, Display, DistanceMinToPlayerToStartGame)) {
                 WriteConsole("[curif.LibRetroMameCore.Run] The Player is looking to another place");
                 if (WaitToExitGame == null) {
                     WaitToExitGame = new Waiter(SecondsToWaitToExitGame);
@@ -965,7 +970,16 @@ public static unsafe class LibretroMameCore
                     */
                     WriteConsole($"[curif.LibRetroMameCore.videoRefreshCB] create new texture w: {width}  h: {height} pitch: {pitch} fmt: {pixelFormat}");
                     GameTexture = new Texture2D((int)width, (int)height, TextureFormat.RGB565, false);
-                    GameTexture.filterMode = FilterMode.Bilinear;
+                    GameTexture.filterMode = FilterMode.Point;
+                    /*
+                    MeshFilter viewedModelFilter = (MeshFilter)Display.GetComponent("MeshFilter");
+                    var bounds = viewedModelFilter.mesh.bounds;
+                    var size = Vector3.Scale(bounds.size, Display.transform.localScale);
+                    if (size.y < .001)
+                        size.y = size.z;
+                    WriteConsole($"[curif.LibRetroMameCore.videoRefreshCB] scale: {size} bounds: {bounds} localscale: {Display.transform.localScale}");
+                    Display.material.mainTextureScale = size;
+                    */
                     Display.material.SetTexture("_MainTex", GameTexture);
                     // Display.material = material;
                 }
@@ -1221,7 +1235,7 @@ public static unsafe class LibretroMameCore
         // WriteConsole($"[curif.LibRetroMameCore.isPlayerClose] distance: {d} < {_distanceMinToPlayerToStartGame} {d < _distanceMinToPlayerToStartGame}");
         return d < _distanceMinToPlayerToStartGame;
     }
-    public static bool isPlayerLookingScreen(GameObject _camera, Renderer _display, float _distanceMinToPlayerToStartGame) {
+    public static bool isPlayerLookingAtScreen(GameObject _camera, Renderer _display, float _distanceMinToPlayerToStartGame) {
         RaycastHit _hit = new RaycastHit();
         Vector3 dir = _camera.transform.TransformDirection(Vector3.forward);
         bool ret = false;
